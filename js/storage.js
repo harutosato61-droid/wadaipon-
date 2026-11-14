@@ -1,7 +1,7 @@
 /* わだいぽん！ — 設定の保存・復元（localStorage） */
 (function () {
 'use strict';
-const { ALL, FONTS } = window.WADAI;
+const { ALL, FONTS, SCENES } = window.WADAI;
 const STORE_KEY = 'wadaipon:v1';
 const loadSaved = () => {
 try {
@@ -20,6 +20,8 @@ if (d.mode === 'normal' || d.mode === 'compact' || d.mode === 'obs') { o.mode = 
 if (typeof d.chroma === 'boolean') { o.chroma = d.chroma; }
 if (typeof d.started === 'boolean') { o.started = d.started; }
 if (d.history) { o.history = strs(d.history, 30); }
+if (d.favs) { o.favs = strs(d.favs, 200); }
+if (typeof d.scene === 'string' && SCENES.indexOf(d.scene) !== -1) { o.scene = d.scene; }
 if (d.seen) { o.seen = strs(d.seen, 400); }
 if (o.started && (!o.history || !o.history.length)) { o.started = false; delete o.history; }
 return o;
@@ -27,7 +29,7 @@ return o;
 };
 const saveState = (st) => {
 try {
-window.localStorage.setItem(STORE_KEY, JSON.stringify({ sel: st.sel, noRepeat: st.noRepeat, fs: st.fs, ff: st.ff, main: st.main, mode: st.mode, chroma: st.chroma, started: st.started, history: st.history, seen: st.seen }));
+window.localStorage.setItem(STORE_KEY, JSON.stringify({ sel: st.sel, noRepeat: st.noRepeat, fs: st.fs, ff: st.ff, main: st.main, mode: st.mode, chroma: st.chroma, started: st.started, history: st.history, seen: st.seen, favs: st.favs, scene: st.scene }));
 } catch (e) {}
 };
 window.WADAI.loadSaved = loadSaved;

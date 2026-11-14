@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>管理画面｜わだいぽん！</title>
+<style>
+body{margin:0;font-family:Meiryo,"Yu Gothic",sans-serif;background:#ffeda5;color:#4a2c2a;line-height:1.7}
+main{max-width:720px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:22px;color:#111}
+button{min-height:44px;padding:0 18px;border:0;border-radius:22px;background:#ffdf5c;font:inherit;font-weight:700;color:#111;cursor:pointer}
+button.danger{background:#fff;color:#a11;border:1.5px solid #a11}
+button:focus-visible{outline:3px solid #111;outline-offset:2px}
+.card{margin-top:12px;padding:14px 16px;border-radius:14px;background:#fff;box-shadow:0 0 8px rgba(0,0,0,.14)}
+.card p{margin:0 0 8px;overflow-wrap:anywhere}.card small{color:#6b4a3a}.row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+#msg{margin-top:12px;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+<h1>管理画面（お題の承認）</h1>
+<div id="auth"></div>
+<p id="msg" role="status"></p>
+<div id="list"></div>
+<p><a href="./">← サイトへ戻る</a></p>
+</main>
+<script src="./js/supa-config.js"></script>
+<script type="module">
+import { supabase } from "./js/supa.js";
+const $ = (id) => document.getElementById(id);
+const msg = (t) => { $("msg").textContent = t || ""; };
+const btn = (label, fn, cls) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; if (cls) b.className = cls; b.addEventListener("click", fn); return b; };
+const sha256 = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))].map((x) => x.toString(16).padStart(2, "0")).join("");
+const logout = () => btn("ログアウト", async () => { await supabase.auth.signOut(); render(); });
+
+async function render() {
+  $("auth").replaceChildren(); $("list").replaceChildren(); msg("");
+  if (!supabase) { msg("Supabase が未設定です（js/supa-config.js）。"); return; }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    $("auth").append(btn("Googleでログイン", () => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: "select_account" } } })));
+    return;
+  }
+  // ① フロント側チェック：管理者メールのハッシュ照合 ＋ DB の is_admin()。ここは「見せるかどうか」だけ。迂回されても DB 側の RLS が必ず弾く。
+  const emailOk = (await sha256(String(session.user.email || "").toLowerCase())) === (window.WADAI_SUPABASE || {}).adminEmailSha256;
+  const { data: isAdmin, error } = await supabase.rpc("is_admin");
+  $("auth").append(logout());
+  if (!emailOk || error || isAdmin !== true) { msg("このアカウントには管理権限がありません。"); return; }
+
+  // ② ここから先の取得・更新は、すべて DB 側の RLS で「管理者のみ」に制限されている
+  const { data, error: e2 } = await supabase.from("odais").select("id, content, user_id, created_at").eq("status", "pending").order("created_at", { ascending: true });
+  if (e2) { msg("読み込みに失敗しました。"); return; }
+  msg(data.length ? `未承認のお題：${data.length}件` : "未承認のお題はありません。");
+  for (const o of data) {
+    const card = document.createElement("div"); card.className = "card";
+    const p = document.createElement("p"); p.textContent = o.content;                      // textContent（HTMLとして解釈しない）
+    const sm = document.createElement("small"); sm.textContent = `${new Date(o.created_at).toLocaleString("ja-JP")} ／ ${o.user_id.slice(0, 8)}`;
+    const row = document.createElement("div"); row.className = "row";
+    row.append(
+      btn("承認（公開）", async () => { const { error: e } = await supabase.from("odais").update({ status: "approved" }).eq("id", o.id); if (e) msg("承認に失敗しました。"); else render(); }),
+      btn("削除", async () => { if (!confirm("このお題を削除しますか？")) return; const { error: e } = await supabase.from("odais").delete().eq("id", o.id); if (e) msg("削除に失敗しました。"); else render(); }, "danger")
+    );
+    card.append(p, sm, row); $("list").append(card);
+  }
+}
+if (supabase) { supabase.auth.onAuthStateChange(() => render()); }
+render();
+</script>
+</body>
+</html>

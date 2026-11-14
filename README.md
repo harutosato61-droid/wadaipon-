@@ -35,3 +35,12 @@ reference a script puts together while the page runs (for example
 
 Serve the folder (e.g. `python3 -m http.server`) and open `index.html`;
 some browsers block the scripts over file://.
+
+- `js/supa.js` / `js/supa-config.js` — Supabase連携（Googleログイン、お気に入り同期、お題投稿、みんなの投稿、ライブ配信表示）。`supa-config.js` に URL と anon キーを書くと有効になり、空のままなら関連機能は自動で非表示になります。
+- `admin.html` — 管理画面（お題の承認・削除）。管理者の Google アカウントでログインした場合だけ使えます。
+
+## お題データの管理（重要）
+- お題の唯一のデータソースは `data/topics.json` です（ID・本文・ジャンル・雰囲気・利用シーン・人数・初対面向け等）。
+- お題を追加・修正したら、`python3 tools/build.py` を実行してください。`js/topics.js`（ガチャ用）、`/topics/` `/nomikai/` `/haishin/` `/ogiri/` `/online/`、`sitemap.xml`、トップの件数表記が同じデータから再生成されます。
+- `js/topics.js` と上記の各ページは自動生成ファイルです。直接編集しないでください。
+- URLパラメータ：`/?type=ogiri`（カード種類）、`/?genre=配信向け`（ジャンル）、`/?scene=配信`（利用シーン）、`/?mode=obs`（OBSモード）。組み合わせ可。
