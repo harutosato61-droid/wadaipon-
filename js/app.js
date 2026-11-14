@@ -7,7 +7,7 @@ const { DATA, ALL, DEFAULT_SEL, TYPES, FONTS, SCENES, BY_ID, BY_TEXT, themeFor, 
 return class Component extends DCLogic {
 constructor(props) {
 super(props);
-this.state = { started: false, lobby: true, menu: false, sel: DEFAULT_SEL, copied: false, favs: [], scene: '', note: '', lives: [], cloudReady: false, odaiText: '', odaiMsg: '', odaiBusy: false, history: [], type: 'normal', cat: -1, topic: null, anim: null, noRepeat: true, seen: [], fs: 1, mode: 'normal', chroma: false, ff: 0, main: null, authReady: false, user: null, authErr: '', authBusy: false };
+this.state = { started: false, lobby: true, menu: false, authMenu: false, sel: DEFAULT_SEL, copied: false, favs: [], scene: '', note: '', lives: [], cloudReady: false, odaiText: '', odaiMsg: '', odaiBusy: false, history: [], type: 'normal', cat: -1, topic: null, anim: null, noRepeat: true, seen: [], fs: 1, mode: 'normal', chroma: false, ff: 0, main: null, authReady: false, user: null, authErr: '', authBusy: false };
 Object.assign(this.state, loadSaved());
 let launch = false;
 try {
@@ -217,8 +217,13 @@ cats,
 authIn: !!au, authOut: !au && st.authReady && !window.WADAI_AUTH_DISABLED, authBusy: st.authBusy,
 userName: au ? au.name : '', photoStyle: au && /^https:\/\/[^\s"')(]+$/.test(au.photo) ? 'background-image:url("' + au.photo + '")' : '', userInitial: au ? Array.from(au.name)[0] || '' : '',
 hasAuthErr: !!st.authErr, authErr: st.authErr,
-login: () => { const api = window.WADAI_AUTH_API; if (!api) { this.setState({ authErr: 'ログイン機能を読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。' }); return; } api.login(); },
-logout: () => { const api = window.WADAI_AUTH_API; if (api) { api.logout(); } },
+authMenuOpen: !!st.authMenu,
+toggleAuthMenu: () => this.setState({ authMenu: !st.authMenu }),
+closeAuthMenu: () => this.setState({ authMenu: false }),
+stopProp: (e) => { if (e && e.stopPropagation) { e.stopPropagation(); } },
+login: () => { this.setState({ authMenu: false }); const api = window.WADAI_AUTH_API; if (!api) { this.setState({ authErr: 'ログイン機能を読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。' }); return; } api.login('google'); },
+loginDiscord: () => { this.setState({ authMenu: false }); const api = window.WADAI_AUTH_API; if (!api) { this.setState({ authErr: 'ログイン機能を読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。' }); return; } api.login('discord'); },
+logout: () => { this.setState({ authMenu: false }); const api = window.WADAI_AUTH_API; if (api) { api.logout(); } },
 dismissAuthErr: () => { const api = window.WADAI_AUTH_API; if (api) { api.clearError(); } this.setState({ authErr: '' }); },
 topic: st.topic,
 anim: st.anim === null ? '' : 'sa' + st.anim,

@@ -17,12 +17,13 @@ if (!configured) {
   const toUser = (session) => {
     const u = session && session.user; if (!u) { return null; }
     const m = u.user_metadata || {};
-    return { id: u.id, name: m.full_name || m.name || u.email || 'ユーザー', photo: m.avatar_url || m.picture || '' };
+    return { id: u.id, name: m.full_name || m.name || m.user_name || m.global_name || u.email || 'ユーザー', photo: m.avatar_url || m.picture || '' };
   };
   window.WADAI_AUTH_API = {
-    async login() {
+    async login(provider = 'google') {
       state.busy = true; state.error = ''; emit();
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname, queryParams: { prompt: 'select_account' } } });
+      const options = { redirectTo: window.location.origin + window.location.pathname };
+      const { error } = await supabase.auth.signInWithOAuth({ provider, options });
       if (error) { state.busy = false; state.error = 'ログインに失敗しました。時間をおいて、もう一度お試しください。'; emit(); }
     },
     async logout() { await supabase.auth.signOut(); },
