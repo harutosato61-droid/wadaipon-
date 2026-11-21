@@ -174,7 +174,7 @@ html:has(.wrap.m-obs),html:has(.wrap.m-obs) body{background:transparent!importan
 .hnav.open .navl{margin:0!important;padding:14px 4px;font-size:15px!important;text-decoration:none!important;border-bottom:1px solid rgba(74,44,42,.15)}
 .hnav.open .navl:last-child{border-bottom:0}
 }
-@media (max-width:420px){.hlogo{margin-right:10px!important}.wrap header{--lw:111px}.hlogo img{height:auto!important}.hnav{gap:10px!important}.hnav .navl{font-size:13px!important}}
+@media (max-width:420px){.hlogo{margin-right:10px!important}.wrap header{--lw:111px}.hlogo img{height:auto!important}.hnav{gap:10px!important}.hnav .navl{font-size:13px!important}.guest-btn{padding:0 8px;gap:4px}.guest-btn span{font-size:12px}.user-btn .auth-n{max-width:4.5em}}
 @media (prefers-reduced-motion:reduce){.sw,.sw i{transition:none}}
 
 .mat{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:22px;background:#fff;box-shadow:0 0 12px rgba(0,0,0,.14)}
